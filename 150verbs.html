@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Italian Flashcard Matching</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f6f6f6;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+  }
+  .game-container {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    flex-wrap: wrap;
+  }
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    min-width: 120px;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .card.selected {
+    background: #d0ebff;
+    box-shadow: 0 0 10px #74c0fc;
+  }
+  .card.correct {
+    background: #d3f9d8;
+    text-decoration: line-through;
+    cursor: default;
+    opacity: 0.7;
+  }
+  .card.wrong {
+    background: #ffa8a8;
+    animation: shake 0.3s;
+  }
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+  }
+  #next-round {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>Italian Flashcard Matching</h1>
+<div class="game-container">
+  <div id="english-column" class="column"></div>
+  <div id="italian-column" class="column"></div>
+</div>
+<button id="next-round" style="display:none;">Next Round</button>
+
+<script>
+
+const words = [
+["Avere", "To have"],
+["Fare", "To do"],
+["Andare", "To go"],
+["Potere", "To be able to"],
+["Dare", "To give"],
+["Volere", "To want"],
+["Venire", "To come"],
+["Dovere", "To have to"],
+["Stare", "To stay/ to remain/ to be"],
+["Dire", "To say"],
+["Sapere", "To know"],
+["Vedere", "To see"],
+["Mangiare", "To eat"],
+["Parlare", "To speak"],
+["Uscire", "To go out"],
+["Prendere", "To take"],
+["Piacere", "To like"],
+["Leggere", "To read"],
+["Amare", "To love"],
+["Bere", "To drink"],
+["Finire", "To finish"],
+["Capire", "To understand"],
+["Arrivare", "to arrive"],
+["Scrivere", "To write"],
+["Partire", "To leave"],
+["Mettere", "To put"],
+["Rimanere", "To remain"],
+["Dormire", "To sleep"],
+["Vivere", "To live"],
+["Conoscere", "To know – in the sense of being acquainted with or familiar with something or someone"],
+["Sentire", "To hear"],
+["Cucinare", "To cook"],
+["Studiare", "To study"],
+["Giocare", "To play"],
+["Chiedere", "To ask"],
+["Trovare", "To find"],
+["Credere", "To believe"],
+["Aprire", "To open"],
+["Lavorare", "To work"],
+["Pensare", "To think"],
+["Correre", "To run"],
+["Tenere", "To hold"],
+["Guardare", "To watch"],
+["Chiamare", "To call"],
+["Tornare", "To return"],
+["Salire", "To go up"],
+["Preferire", "To prefer"],
+["Morire", "To die"],
+["Aspettare", "To wait"],
+["Comprare", "To buy"],
+["Nascere", "To be born"],
+["Cercare", "To look for"],
+["Perdere", "To loose"],
+["Cantare", "To sing"],
+["Passare", "To pass"],
+["Cominciare", "To begin"],
+["Ascoltare", "To listen to"],
+["Riuscire", "To be able to"],
+["Decidere", "To decide"],
+["Abitare", "To inhabit"],
+["Cadere", "To fall"],
+["Chiudere", "To close"],
+["Lasciare", "To leave"],
+["Scegliere", "To choose"],
+["Portare", "To bring"],
+["Ricevere", "To receive"],
+["Lavare", "To clean"],
+["Rispondere", "To respond"],
+["Sedere", "To sit"],
+["Vincere", "To win"],
+["Pagare", "To pay"],
+["Alzare", "To get up"],
+["Ridere", "To laugh"],
+["Scendere", "To descend"],
+["Incontrare", "To encounter"],
+["Offrire", "To offer"],
+["Imparare", "To learn"],
+["Dimenticare", "To forget"],
+["Svegliare", "To wake up"],
+["Crescere", "To grow"],
+["Vendere", "To sell"],
+["Divertire", "To amuse"],
+["Diventare", "To become"],
+["Porre", "To place"],
+["Entrare", "To enter"],
+["Temere", "To fear"],
+["Pulire", "To clean"],
+["Vestire", "To dress"],
+["Seguire", "To follow"],
+["Restare", "To stay"],
+["Cambiare", "To change"],
+["Viaggiare", "To travel"],
+["Spegnere", "To turn off"],
+["Ricordare", "To remember"],
+["Apparire", "To appear"],
+["Aiutare", "To help"],
+["Tacere", "To be silent"],
+["Spedire", "To send"],
+["Preparare", "To prepare"],
+["Consentire", "To consent"],
+["Infastidire", "To annoy"],
+["Discutere", "To argue"],
+["Tentare", "To tempt"],
+["Attirare", "To attract"],
+["Appartenere", "To belong"],
+["Acquistare", "To purchase"],
+["Catturare", "To capture"],
+["Festeggiare", "To celebrate"],
+["Confrontare", "To confront"],
+["Sognare", "To dream"],
+["Guadagnare", "To earn"],
+["Volare", "To fly"],
+["Salutare", "To greet"],
+["Appendere", "To hang"],
+["Sperare", "To hope"],
+["Informare", "To inform"],
+["Presentare", "To present"],
+["Saltare", "To jump"],
+["Invitare", "To invite"],
+["Baciare", "To kiss"],
+["Mancare", "To miss"],
+["Mentire", "To lie"],
+["Sposare", "To marry"],
+["Traslocare", "To move"],
+["Bisognare", "To need"],
+["Pingere", "To paint"],
+["Vietare", "To forbid"],
+["Tirare", "To throw/ to pull"],
+["Calcolare", "To calculate"],
+["Affittare", "To rent"],
+["Riparare", "To fix"],
+["Condividere", "To share"],
+["Gridare", "To yell"],
+["Mostrare", "To display"],
+["Spendere", "To spend"],
+["Sorridere", "To smile"],
+["Fumare", "To smoke"],
+["Assaggiare", "To taste"],
+["Lanciare", "To launch"],
+["Nuotare", "To swim"],
+["Indossare", "To wear"],
+["Augurare", "To express good wishes"],
+["Ringraziare", "To thank"],
+["Ballare", "To dance"],
+["Camminare", "To walk"],
+["Aggiungere", "To add"],
+["Annoiare", "To bore"],
+["Abbassare", "To lower"],
+["Adorare", "To adore"],
+];
+
+// Weighted random: top 5 in this demo get more weight
+function getWeightedRandomWords(count) {
+  const weighted = [];
+  words.forEach((pair, index) => {
+    const weight = index < 50 ? 2 : 1;
+    for (let i = 0; i < weight; i++) {
+      weighted.push(pair);
+    }
+  });
+  
+  const chosen = [];
+  const used = new Set();
+  while (chosen.length < count) {
+    const randomPair = weighted[Math.floor(Math.random() * weighted.length)];
+    const key = randomPair[0] + "-" + randomPair[1];
+    if (!used.has(key)) {
+      used.add(key);
+      chosen.push(randomPair);
+    }
+  }
+  return chosen;
+}
+
+let selectedEnglish = null;
+let matchesLeft = 0;
+
+function renderGame() {
+  const set = getWeightedRandomWords(10);
+  matchesLeft = set.length;
+  const englishCol = document.getElementById("english-column");
+  const italianCol = document.getElementById("italian-column");
+  englishCol.innerHTML = "";
+  italianCol.innerHTML = "";
+  document.getElementById("next-round").style.display = "none";
+
+  // Shuffle Italian words
+  const italianShuffled = [...set].sort(() => Math.random() - 0.5);
+
+  set.forEach(([en, it]) => {
+    const enCard = document.createElement("div");
+    enCard.className = "card";
+    enCard.textContent = en;
+    enCard.dataset.match = it;
+    enCard.addEventListener("click", () => selectEnglish(enCard));
+    englishCol.appendChild(enCard);
+  });
+
+  italianShuffled.forEach(([en, it]) => {
+    const itCard = document.createElement("div");
+    itCard.className = "card";
+    itCard.textContent = it;
+    itCard.dataset.match = it;
+    itCard.addEventListener("click", () => selectItalian(itCard));
+    italianCol.appendChild(itCard);
+  });
+}
+
+function selectEnglish(card) {
+  if (card.classList.contains("correct")) return;
+  document.querySelectorAll("#english-column .card").forEach(c => c.classList.remove("selected"));
+  selectedEnglish = card;
+  card.classList.add("selected");
+}
+
+function selectItalian(card) {
+  if (!selectedEnglish || card.classList.contains("correct")) return;
+
+  if (selectedEnglish.dataset.match === card.dataset.match) {
+    selectedEnglish.classList.add("correct");
+    card.classList.add("correct");
+    selectedEnglish.classList.remove("selected");
+    selectedEnglish = null;
+    matchesLeft--;
+    if (matchesLeft === 0) {
+      document.getElementById("next-round").style.display = "inline-block";
+    }
+  } else {
+    card.classList.add("wrong");
+    setTimeout(() => {
+      card.classList.remove("wrong");
+    }, 300);
+  }
+}
+
+document.getElementById("next-round").addEventListener("click", renderGame);
+
+renderGame();
+</script>
+</body>
+</html>
