@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Italian Flashcard Matching</title>
+<style>
+  :root {
+    /* Italian Flag Theme Colors */
+    --theme-green: #009246;
+    --theme-white: #ffffff;
+    --theme-red: #ce2b37;
+    
+    /* UI Colors */
+    --background-color: #f4f6f8;
+    --text-color: #333;
+    --selected-background: #e0e0e0; /* A neutral gray for selection */
+    --correct-background: var(--theme-green);
+    --wrong-background: var(--theme-red);
+    
+    /* General Styles */
+    --border-radius: 12px;
+    --box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-family);
+    background: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+
+  h1 {
+    margin-bottom: 30px;
+    color: var(--theme-green); /* Use theme green for the title */
+  }
+
+  .game-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .card {
+    background: var(--theme-white); /* Cards are white by default */
+    padding: 15px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+
+  .card.selected {
+    background: var(--selected-background);
+    transform: scale(1.05);
+  }
+
+  .card.correct {
+    background: var(--correct-background);
+    color: var(--theme-white); /* White text on green background */
+    cursor: default;
+    transform: scale(1);
+    box-shadow: none;
+  }
+
+  .card.wrong {
+    background: var(--wrong-background);
+    color: var(--theme-white); /* White text on red background */
+    animation: shake 0.5s;
+  }
+
+  #next-round {
+    margin-top: 30px;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--theme-white);
+    background-color: var(--theme-red); /* Use theme red for the button */
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    display: none;
+    transition: background-color 0.2s;
+  }
+
+  #next-round:hover {
+    background-color: #a8222c; /* A darker red for hover */
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  @media (max-width: 700px) {
+    .game-container {
+      flex-direction: column;
+      gap: 40px;
+    }
+    .column {
+      min-width: unset;
+      width: 100%;
+    }
+    body {
+        padding: 15px;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<h1>Italian Flashcard Matching</h1>
+<div class="game-container">
+  <div class="column" id="english-column"></div>
+  <div class="column" id="italian-column"></div>
+</div>
+<button id="next-round">Next Round</button>
+
+<script>
+const words = [
+["arrosto","roast"],
+["bistecca","steak"],
+["cacciagione","game meat"],
+["calamari","calamari (squid)"],
+["carne","meat"],
+["carpaccio","thinly sliced raw meat or fish"],
+["costine","ribs"],
+["cotoletta","breaded cutlet"],
+["crostacei","shellfish"],
+["filetto","filet (tenderloin cut)"],
+["fiorentina","Florentine T-bone steak"],
+["fritto misto","mixed fried seafood"],
+["frutti di mare","seafood and shellfish"],
+["gamberi/gamberetti","shrimps"],
+["maiale","pork"],
+["manzo","beef"],
+["pancetta","bacon"],
+["pesce","fish"],
+["polpette","meatballs"],
+["polpo","octopus"],
+["pollo","chicken"],
+["salmone","salmon"],
+["tagliata","sliced grilled steak"],
+["tartare","tartare"],
+["tonno","tuna"],
+["uova","eggs"],
+["aglio","garlic"],
+["asparago","asparagus"],
+["batata/patata americana","sweet potato"],
+["broccolo","broccoli"],
+["carciofo","artichoke"],
+["carota","carrot"],
+["cavolfiore","cauliflower"],
+["cavolo*","cabbage"],
+["ceci","chickpeas"],
+["cetriolo","cucumber"],
+["cipolla","onion"],
+["fagioli","beans"],
+["fungo","mushroom"],
+["insalata/insalatona","salad/big mixed salad"],
+["lattuga","lettuce"],
+["mais","corn"],
+["melanzana","eggplant"],
+["minestrone","chunky vegetable soup"],
+["patata","potato"],
+["piselli","peas"],
+["zucchina","zucchini"],
+["zucca","pumpkin"],
+["albicocca","apricot"],
+["ananas","pineapple"],
+["anguria","watermelon"],
+["arancia","orange"],
+["banana","banana"],
+["ciliegia","cherry"],
+["fico","fig"],
+["fragola","strawberry"],
+["frutti di bosco","mixed berries"],
+["kiwi","kiwi"],
+["limone","lemon"],
+["mandarino","tangerine"],
+["mela","apple"],
+["melograno","pomegranate"],
+["melone","melon"],
+["mirtillo","blueberry"],
+["pera","pear"],
+["pesca","peach"],
+["pomodoro","tomato"],
+["prugna","plum"],
+["uva","grapes"],
+["burrata","mozzarella with cream"],
+["burro","butter"],
+["formaggio","cheese"],
+["gorgonzola","gorgonzola cheese"],
+["grana padano","grana padano cheese"],
+["latte","milk"],
+["mozzarella","mozzarella"],
+["panna da cucina","cream"],
+["panna montata","whipped cream"],
+["parmigiano reggiano","parmesan cheese"],
+["pecorino","pecorino (sheep cheese from Rome or Sardinia)"],
+["provola","provolone cheese"],
+["ricotta","ricotta cheese"],
+["yogurt","yogurt"],
+["aceto","vinegar"],
+["alloro","bay leaf"],
+["basilico","basil"],
+["cannella","cinnamon"],
+["ketchup","ketchup"],
+["maionese","mayonnaise"],
+["margarina","margarine"],
+["noce moscata","nutmeg"],
+["olio d’oliva","olive oil"],
+["origano","oregano"],
+["passata di pomodoro","strained raw tomato purée"],
+["pepe","pepper"],
+["peperoncino","chili pepper"],
+["pesto","pesto"],
+["prezzemolo","parsley"],
+["ragù","Bolognese (meat) sauce"],
+["rosmarino","rosemary"],
+["sale","salt"],
+["salsa tartara","tartar sauce"],
+["salsa tonnata","tonnata (tuna) sauce"],
+["salsa verde","green herb sauce"],
+["salvia","sage"],
+["senape","mustard"],
+["sugo di pomodoro","tomato sauce"],
+["timo","thyme"],
+["zafferano","saffron"],
+["zenzero","ginger"],
+["acqua naturale/frizzante","still/sparkling water"],
+["amaro","bitter herbal digestif"],
+["analcolico","non-alcoholic drink"],
+["aranciata","orange soda"],
+["birra","beer"],
+["chinotto","chinotto (bitter soft drink from Sicily)"],
+["digestivo","digestif, after-dinner liquor"],
+["grappa","grappa (Italian grape brandy)"],
+["limonata","lemon soda"],
+["limoncello","lemon liqueur"],
+["liquore","liqueur"],
+["prosecco","slightly sparkling white wine"],
+["spremuta","freshly squeezed juice"],
+["spritz","popular aperitif cocktail"],
+["spumante","fermented sparkling wine"],
+["succo ACE","orange, carrot & lemon juice"],
+["succo d’arancia","orange juice"],
+["succo di frutta","fruit juice"],
+["succo di mele","apple juice"],
+["succo all’albicocca","apricot juice"],
+["succo alla pesca","peach juice"],
+["succo di pompelmo","grapefruit juice"],
+["vino bianco/rosso/rosato","white/red/rose wine"],
+["caffè americano","American-style, filtered coffee"],
+["caffè corretto","espresso with a shot of liquor"],
+["caffè d’orzo","barley coffee (caffeine-free)"],
+["caffè latte","coffee with lots of milk"],
+["caffè macchiato","espresso stained with a little milk"],
+["camomilla","chamomile tea"],
+["cappuccino","cappuccino"],
+["cioccolata calda","hot chocolate"],
+["deca/decaffeinato","caffeine-free coffee"],
+["ristretto","very short espresso"],
+["tisana","herbal infusion"],
+["latte d’avena","oat milk"],
+["latte di soia","soy milk"],
+["latte macchiato","steamed milk stained with espresso"],
+["marocchino","espresso with cocoa and milk foam"],
+["moka","Moka pot"],
+["tè/tè deteinato","tea/caffeine-free tea"],
+["affettati","deli meats"],
+["bruschetta","toasted bread with toppings"],
+["cicchetti","toasted bread with meats and veggies (Venice)"],
+["crostini","small toasted bread slices"],
+["focaccia","flatbread"],
+["mortadella Bologna","Bologna-style mortadella sausage"],
+["noccioline","peanuts"],
+["olive","olives"],
+["patatine","potato chips"],
+["piadina","thin Italian flatbread folded with fillings"],
+["pizzette","mini pizzas"],
+["prosciutto (cotto or crudo)","ham (cooked or dry-cured)"],
+["salame","salami"],
+["stuzzichini","finger food"],
+["tagliere","charcuterie board"],
+["taralli","crunchy bread rings"],
+["tartine","canapé"],
+["tramezzini","crustless sandwich triangles"],
+["amaretti","small almond-flavored cookies"],
+["babà","rum-soaked sponge cake (Naples)"],
+["biscotti","cookies"],
+["bombolone","cream/jam-filled doughnut"],
+["brioche","sweet bun or soft pastry (varies by region)"],
+["cannolo","pastry with ricotta filling (Sicily)"],
+["cantucci","almond cookies typically served with vin santo"],
+["cereali","cereals"],
+["ciambella","ring-shaped cake or doughnut"],
+["colomba","dove-shaped cake for Easter in Italy"],
+["cornetto/croissant","French croissant"],
+["crostata","jam tart or fruit tart"],
+["fette biscottate","rusks"],
+["frittelle","Carnival fried sweet fritters"],
+["gelato (cono or coppetta)","ice cream (cone or cup)"],
+["maritozzo","sweet bun filled with whipped cream (Rome)"],
+["marmellata","jam"],
+["pandoro","fluffy Italian Christmas cake"],
+["panettone","Christmas sweet bread with raisins and candied fruit"],
+["panna cotta","cooked cream dessert"],
+["pasticciotto","shortcrust pastry filled with custard (Puglia)"],
+["seadas","fried pastry filled with cheese and honey (Sardinia)"],
+["sfogliatella","layered pastry, filled with ricotta (Naples)"],
+["tiramisù","tiramisu"],
+["tortina","store-bought pastry"],
+["zeppola","fried dough ball, often cream-filled (Naples)"],
+["squisitezza","delicacy/something exquisitely good"],
+["prelibatezza","gourmet delight"],
+["leccornia","treat"],
+];
+
+let currentWords = [];
+let selectedEnglish = null;
+let matchesLeft = 0;
+
+document.addEventListener("DOMContentLoaded", startNewRound);
+document.getElementById("next-round").addEventListener("click", startNewRound);
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function startNewRound() {
+  document.getElementById("next-round").style.display = "none";
+  const shuffledWords = shuffle([...words]);
+  // Updated to show 8 cards per round
+  currentWords = shuffledWords.slice(0, 8);
+  matchesLeft = currentWords.length;
+  
+  const englishCol = document.getElementById("english-column");
+  const italianCol = document.getElementById("italian-column");
+  englishCol.innerHTML = "";
+  italianCol.innerHTML = "";
+
+  const englishShuffled = shuffle([...currentWords]);
+  const italianShuffled = shuffle([...currentWords]);
+
+  englishShuffled.forEach(([en, it]) => {
+    const enCard = document.createElement("div");
+    enCard.className = "card";
+    enCard.textContent = en;
+    enCard.dataset.match = it;
+    enCard.addEventListener("click", () => selectEnglish(enCard));
+    englishCol.appendChild(enCard);
+  });
+
+  italianShuffled.forEach(([en, it]) => {
+    const itCard = document.createElement("div");
+    itCard.className = "card";
+    itCard.textContent = it;
+    itCard.dataset.match = it;
+    itCard.addEventListener("click", () => selectItalian(itCard));
+    italianCol.appendChild(itCard);
+  });
+}
+
+function selectEnglish(card) {
+  if (card.classList.contains("correct")) return;
+  document.querySelectorAll("#english-column .card").forEach(c => c.classList.remove("selected"));
+  selectedEnglish = card;
+  card.classList.add("selected");
+}
+
+function selectItalian(card) {
+  if (!selectedEnglish || card.classList.contains("correct")) return;
+
+  if (selectedEnglish.dataset.match === card.dataset.match) {
+    selectedEnglish.classList.add("correct");
+    card.classList.add("correct");
+    selectedEnglish.classList.remove("selected");
+    selectedEnglish = null;
+    matchesLeft--;
+    if (matchesLeft === 0) {
+      document.getElementById("next-round").style.display = "inline-block";
+    }
+  } else {
+    card.classList.add("wrong");
+    setTimeout(() => card.classList.remove("wrong"), 500);
+  }
+}
+</script>
+
+</body>
+</html>
