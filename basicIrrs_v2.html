@@ -306,7 +306,7 @@ function getWeightedRandomWords(count) {
 }
 
 function renderGame() {
-  currentSet = getWeightedRandomWords(10);
+  currentSet = getWeightedRandomWords(8);
   matchesLeft = currentSet.length;
   
   const englishCol = document.getElementById("english-column");
@@ -390,4 +390,5 @@ document.getElementById("page-title").textContent = pageTitle;
   <p><a href="index.html">Flashcard Home</a></p>
 </div>
 </body>
+
 </html>
