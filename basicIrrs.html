@@ -108,6 +108,12 @@
     transition: background 0.2s;
     min-height: 44px;
     display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
   }
   
   #next-round:hover {
@@ -155,6 +161,28 @@
     
     h1 {
       margin: 5px 0 15px;
+
+    }
+        #next-round {
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      transform: none;
+      max-width: calc(100vw - 20px);
+    }
+  }
+
+    /* Larger screens - show button inline */
+  @media (min-width: 769px) {
+    .game-container {
+      padding-bottom: 0;
+    }
+    
+    #next-round {
+      position: static;
+      transform: none;
+      margin: 20px auto 10px;
+      box-shadow: none;
     }
   }
   
